@@ -142,17 +142,126 @@ if page != "Model Prediction":
 
 
 # ================= ABOUT DATASET =================
+
 if page == "About Dataset":
 
-    st.header("📘 About Dataset")
+    st.header("📘 About the Dataset & Project")
 
-    st.write("""
-This project analyzes borrower financial profiles to predict loan default risk.
-The dashboard provides analytics insights and ML-based prediction.
+    st.markdown("""
+### 🏦 Project Overview
+
+This project analyzes borrower financial profiles to assess **credit risk** and predict the likelihood of loan default.
+
+The dataset contains borrower demographic information, financial details, loan characteristics, and historical credit behavior.  
+The objective is to uncover risk patterns and support smarter, data-driven lending decisions.
 """)
 
-    st.subheader("Dataset Preview")
-    st.dataframe(df.head())
+    st.divider()
+
+    # ---------------- DATASET SUMMARY ---------------- #
+    st.subheader("📊 Dataset Summary")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total Records", f"{df.shape[0]:,}")
+    col2.metric("Total Features", f"{df.shape[1]}")
+    col3.metric("Target Variable", "loan_status")
+
+    st.markdown("""
+The dataset is structured for supervised machine learning, where **loan_status** represents whether a borrower defaulted.
+""")
+
+    st.divider()
+
+    # ---------------- FEATURE CATEGORIES ---------------- #
+    st.subheader("🧾 Feature Categories")
+
+    st.markdown("""
+#### 👤 Borrower Demographics
+- `person_age` – Age of the borrower  
+- `person_income` – Annual income  
+- `person_home_ownership` – Housing status (Rent, Own, Mortgage, Other)  
+- `person_emp_length` – Employment duration in years  
+
+#### 💳 Loan Details
+- `loan_amnt` – Loan amount requested  
+- `loan_int_rate` – Interest rate applied  
+- `loan_intent` – Purpose of loan  
+- `loan_grade` – Credit grade assigned  
+
+#### 📈 Credit History
+- `cb_person_cred_hist_length` – Length of credit history  
+- `cb_person_default_on_file` – Historical default indicator  
+
+#### 🧠 Engineered Features
+- `loan_percent_income` – Loan amount as % of income  
+- `emp_length_missing` – Indicator for missing employment length  
+- `income_stability` – Stability proxy using income & employment  
+- `dti_band` – Debt-to-income risk category  
+""")
+    
+
+    st.divider()
+
+    # ---------------- TARGET VARIABLE ---------------- #
+    st.subheader("🎯 Target Variable: Loan Status")
+
+    st.markdown("""
+- `0` → No Default  
+- `1` → Default  
+
+This binary classification problem helps financial institutions determine whether a borrower is likely to repay the loan.
+""")
+
+    default_rate = df["loan_status"].mean() * 100
+
+    st.info(f"📌 Current Default Rate in Dataset: **{default_rate:.2f}%**")
+
+    st.divider()
+
+    # ---------------- BUSINESS OBJECTIVE ---------------- #
+    st.subheader("🎯 Business Objective")
+
+    st.markdown("""
+The primary goal of this project is to:
+
+- Reduce loan default risk  
+- Improve credit approval strategies  
+- Enable risk-based pricing  
+- Support automated underwriting systems  
+- Enhance portfolio risk monitoring  
+
+By leveraging data analytics and machine learning, banks can minimize financial losses while maintaining responsible lending practices.
+""")
+
+    st.divider()
+
+    # ---------------- DATA QUALITY ---------------- #
+    st.subheader("🧹 Data Preparation & Quality")
+
+    st.markdown("""
+- Removed unnecessary `Unnamed` columns  
+- Handled missing employment values  
+- Created engineered features for improved prediction  
+- Standardized categorical labels  
+- Ensured consistency between training and prediction pipelines  
+""")
+
+    st.divider()
+
+    # ---------------- PROJECT IMPACT ---------------- #
+    st.subheader("🚀 Project Impact")
+
+    st.markdown("""
+This dashboard provides:
+
+✔ Interactive exploratory data analysis  
+✔ Risk segmentation insights  
+✔ Model-based probability prediction  
+✔ Executive-level KPI monitoring  
+
+The system bridges **data analysis + machine learning + business intelligence** into a unified fintech solution.
+""")
 
 
 # ================= UNIVARIATE =================
@@ -321,4 +430,5 @@ elif page == "Model Prediction":
             "Default Probability",
             f"{probability*100:.2f}%"
         )
+
 
