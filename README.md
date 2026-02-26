@@ -1,104 +1,107 @@
-# Credit-Risk-Management-ML-Project
+# 💳 Credit Risk Prediction System
 
-A production-oriented Machine Learning project that predicts loan default risk using classification models and deploys the final model through a Streamlit dashboard.
+An end-to-end **Machine Learning project** that predicts loan default risk and delivers interactive analytics through a deployed **Streamlit dashboard**.
+
+🔗 **Live App:**  
+https://credit-risk-prediction-ml-project.streamlit.app/
 
 ---
 
-## 📌 Business Objective
+## 🚀 Project Overview
 
 Financial institutions face significant losses due to loan defaults.  
-This project builds a predictive system that classifies applicants as:
+This project builds a **data-driven credit risk classification system** that helps identify high-risk borrowers before loan approval.
 
-- **0 → Non-Default (Low Risk)**
-- **1 → Default (High Risk)**
+**Prediction Output**
+- `0` → Low Risk (Non-Default)
+- `1` → High Risk (Default)
 
-The goal is to improve loan approval decisions by accurately identifying high-risk borrowers.
-
----
-
-## 📊 Dataset Summary
-
-- **Rows:** 32,500  
-- **Features:** 12  
-- **Target Variable:** `loan_status`  
-- **Class Distribution:**  
-  - 78% Non-Default  
-  - 22% Default  
-
-Since the dataset is moderately imbalanced, evaluation metrics beyond accuracy were prioritized.
+The system combines **data analysis, machine learning, and cloud deployment** into a production-ready solution.
 
 ---
 
-## 🧠 Models Implemented
+## 📊 Dataset
 
-- Logistic Regression (Baseline)
+- Records: **32,500**
+- Features: **12**
+- Target: `loan_status`
+- Class Distribution:
+  - 78% Non-Default
+  - 22% Default
+
+Since the dataset is imbalanced, model evaluation focused on **Recall, F1-score, and ROC-AUC** instead of accuracy.
+
+---
+
+## 🧠 Models Compared
+
+- Logistic Regression
 - Random Forest
 - Gradient Boosting
-- XGBoost
+- XGBoost ✅ (Final Model)
 
-All models were built using a **Scikit-learn Pipeline** with:
+Built using a **Scikit-learn Pipeline** with automated preprocessing:
 
-- `ColumnTransformer`
-- `StandardScaler`
-- `OneHotEncoder`
-
----
-
-## 📈 Evaluation Strategy
-
-Due to class imbalance, model selection was based on:
-
-- **Recall (Class 1 – Defaulters)**  
-- **F1 Score**
-- **ROC-AUC**
-- Confusion Matrix  
-
-### Why Not Accuracy?
-
-Accuracy can be misleading in imbalanced datasets.  
-ROC-AUC and Recall were prioritized to ensure strong detection of defaulters.
+- ColumnTransformer
+- StandardScaler
+- OneHotEncoder
 
 ---
 
 ## 🏆 Final Model
 
-The selected model achieved:
-
-- High ROC-AUC (strong class separation)
-- Balanced Precision & Recall
-- Improved F1-score
-
-The final trained pipeline was serialized as:
-
+The selected model achieved strong performance in identifying defaulters while maintaining balanced precision and recall.
 credit_risk_model1.pkl
+
 ---
 
-## 🚀 Deployment
+## 📈 Dashboard Features
 
-A Streamlit dashboard was developed to:
+✅ Interactive EDA  
+✅ Risk Analytics  
+✅ Real-time Loan Prediction  
+✅ Default Probability Score  
+✅ Business KPI Monitoring  
 
-- Display model performance metrics
-- Accept real-time user input
-- Predict default probability
-- Classify applicant risk level
+---
+
+## ⚙️ Deployment
+
+The application is deployed using **Streamlit Community Cloud**.
+
+**Workflow**
+Model Training → Model Serialization → GitHub → Streamlit Deployment
+
+The deployed app loads the trained pipeline and performs real-time predictions.
 
 ---
 
 ## 🛠 Tech Stack
 
-- Python  
-- Pandas / NumPy  
-- Scikit-learn  
-- XGBoost  
-- Streamlit  
-- Joblib  
+**Machine Learning**
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+- XGBoost
+
+**Visualization & App**
+- Plotly
+- Streamlit
+
+**Deployment**
+- GitHub
+- Streamlit Cloud
+- Joblib
 
 ---
-```
+
 ## 📂 Project Structure
-credit-risk-project/
+```
+Credit-Risk-Prediction-ML-Project/
 │
 ├── EDA_Credit_Risk_Management.ipynb
+├── credit_risk_dataset.csv
 ├── credit_risk_model1.pkl
 ├── dashboard.py
 ├── requirements.txt
@@ -107,17 +110,30 @@ credit-risk-project/
 
 ---
 
-## 💼 Key Takeaways
+## 💼 Skills Demonstrated
 
-- Applied structured ML workflow using pipelines
-- Handled class imbalance using appropriate metrics
-- Compared multiple models before final selection
-- Built a deployment-ready ML system
-- Focused on business-driven model evaluation
+- End-to-End ML Pipeline
+- Credit Risk Modeling
+- Feature Engineering
+- Imbalanced Data Handling
+- Model Evaluation
+- ML Deployment
+- Dashboard Development
 
 ---
 
 ## 👨‍💻 Author
 
-Anurag Patil  
-Machine Learning | Credit Risk Modeling | Data Science
+**Anurag Patil**
+
+🔗 GitHub  
+https://github.com/Anurag-Patil-Git  
+
+🔗 LinkedIn  
+https://www.linkedin.com/in/anurag-patil/
+
+---
+
+⭐ If you like this project, consider giving it a star!
+
+Saved production model:
