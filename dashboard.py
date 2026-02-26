@@ -1,19 +1,26 @@
+# ================================
+# FIX STREAMLIT FILE WATCHER ISSUE
+# ================================
+import os
+os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"
+
+# ================================
+# IMPORTS
+# ================================
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import joblib
 
 
-# ---------------- PAGE CONFIG ---------------- #
-
+# ================= PAGE CONFIG =================
 st.set_page_config(
     page_title="Credit Risk Analytics & Prediction",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ---------------- CSS ---------------- #
-
+# ================= CSS =================
 st.markdown("""
 <style>
 
@@ -47,53 +54,38 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- LOAD DATA ---------------- #
 
-import os
-
-@st.cache_data
+# ================= LOAD DATA =================
+@st.cache_data(show_spinner=False)
 def load_data():
-    # build an explicit path relative to this script so it works regardless
-    csv_path = os.path.join(os.path.dirname(__file__), "credit_risk_dataset.csv")
-    if not os.path.exists(csv_path):
-        # if the file isn't in the container, try loading directly from GitHub as a fallback
-        st.warning("local data file not found, attempting to fetch from GitHub")
-        csv_url = (
-            "https://raw.githubusercontent.com/Anurag-Patil-Git/Credit-Risk-Management-ML-Project/main/credit_risk_dataset.csv"
-        )
-        try:
-            df = pd.read_csv(csv_url)
-        except Exception as e:
-            st.error(f"could not load dataset: {e}")
-            return pd.DataFrame()
-    else:
-        try:
-            df = pd.read_csv(csv_path)
-        except Exception as e:
-            st.error(f"error reading dataset at {csv_path}: {e}")
-            return pd.DataFrame()
-
-    if df.empty:
-        st.warning("dataset loaded but contains no rows")
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    csv_url = "https://raw.githubusercontent.com/Anurag-Patil-Git/Credit-Risk-Management-ML-Project/main/credit_risk_dataset.csv"
+    df = pd.read_csv(csv_url)
+    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
     return df
 
-# load the data and display diagnostics
 
 df = load_data()
 
 
-
-# ---------------- LOAD MODEL ---------------- #
-
+# ================= LOAD MODEL =================
 @st.cache_resource
 def load_model():
-    return joblib.load("credit_risk_model1.pkl")
+
+    model_path = os.path.join(
+        os.path.dirname(__file__),
+        "credit_risk_model1.pkl"
+    )
+
+    with open(model_path, "rb") as f:
+        model = joblib.load(f)
+
+    return model
+
 
 model = load_model()
 
-# ---------------- SIDEBAR ---------------- #
 
+# ================= SIDEBAR =================
 st.sidebar.title("🏦 Credit Risk Analytics & Prediction")
 
 page = st.sidebar.radio(
@@ -106,15 +98,12 @@ page = st.sidebar.radio(
     ]
 )
 
-# =====================================================
-# KPI SECTION (VISIBLE ON ALL ANALYTICS PAGES)
-# =====================================================
-
+# ================= KPI SECTION =================
 if page != "Model Prediction":
 
     st.title("💳 Credit Risk Analytics & Prediction")
 
-    col1,col2,col3,col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.markdown(f"""
@@ -122,7 +111,7 @@ if page != "Model Prediction":
             <div class="kpi-title">Total Customers</div>
             <div class="kpi-value">{len(df):,}</div>
         </div>
-        """,unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     with col2:
         st.markdown(f"""
@@ -130,7 +119,7 @@ if page != "Model Prediction":
             <div class="kpi-title">Average Income</div>
             <div class="kpi-value">${df['person_income'].mean():,.0f}</div>
         </div>
-        """,unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     with col3:
         default_rate = df['loan_status'].mean()*100
@@ -139,7 +128,7 @@ if page != "Model Prediction":
             <div class="kpi-title">Default Rate</div>
             <div class="kpi-value">{default_rate:.1f}%</div>
         </div>
-        """,unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     with col4:
         st.markdown(f"""
@@ -147,139 +136,26 @@ if page != "Model Prediction":
             <div class="kpi-title">Avg Loan Amount</div>
             <div class="kpi-value">${df['loan_amnt'].mean():,.0f}</div>
         </div>
-        """,unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     st.divider()
 
-# =====================================================
-# ABOUT DATASET
-# =====================================================
 
+# ================= ABOUT DATASET =================
 if page == "About Dataset":
 
-    st.header("📘 About the Dataset & Project")
+    st.header("📘 About Dataset")
 
-    st.markdown("""
-### 🏦 Project Overview
-
-This project analyzes borrower financial profiles to assess **credit risk** and predict the likelihood of loan default.
-
-The dataset contains borrower demographic information, financial details, loan characteristics, and historical credit behavior.  
-The objective is to uncover risk patterns and support smarter, data-driven lending decisions.
+    st.write("""
+This project analyzes borrower financial profiles to predict loan default risk.
+The dashboard provides analytics insights and ML-based prediction.
 """)
 
-    st.divider()
-
-    # ---------------- DATASET SUMMARY ---------------- #
-    st.subheader("📊 Dataset Summary")
-
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric("Total Records", f"{df.shape[0]:,}")
-    col2.metric("Total Features", f"{df.shape[1]}")
-    col3.metric("Target Variable", "loan_status")
-
-    st.markdown("""
-The dataset is structured for supervised machine learning, where **loan_status** represents whether a borrower defaulted.
-""")
-
-    st.divider()
-
-    # ---------------- FEATURE CATEGORIES ---------------- #
-    st.subheader("🧾 Feature Categories")
-
-    st.markdown("""
-#### 👤 Borrower Demographics
-- `person_age` – Age of the borrower  
-- `person_income` – Annual income  
-- `person_home_ownership` – Housing status (Rent, Own, Mortgage, Other)  
-- `person_emp_length` – Employment duration in years  
-
-#### 💳 Loan Details
-- `loan_amnt` – Loan amount requested  
-- `loan_int_rate` – Interest rate applied  
-- `loan_intent` – Purpose of loan  
-- `loan_grade` – Credit grade assigned  
-
-#### 📈 Credit History
-- `cb_person_cred_hist_length` – Length of credit history  
-- `cb_person_default_on_file` – Historical default indicator  
-
-#### 🧠 Engineered Features
-- `loan_percent_income` – Loan amount as % of income  
-- `emp_length_missing` – Indicator for missing employment length  
-- `income_stability` – Stability proxy using income & employment  
-- `dti_band` – Debt-to-income risk category  
-""")
-    
-
-    st.divider()
-
-    # ---------------- TARGET VARIABLE ---------------- #
-    st.subheader("🎯 Target Variable: Loan Status")
-
-    st.markdown("""
-- `0` → No Default  
-- `1` → Default  
-
-This binary classification problem helps financial institutions determine whether a borrower is likely to repay the loan.
-""")
-
-    default_rate = df["loan_status"].mean() * 100
-
-    st.info(f"📌 Current Default Rate in Dataset: **{default_rate:.2f}%**")
-
-    st.divider()
-
-    # ---------------- BUSINESS OBJECTIVE ---------------- #
-    st.subheader("🎯 Business Objective")
-
-    st.markdown("""
-The primary goal of this project is to:
-
-- Reduce loan default risk  
-- Improve credit approval strategies  
-- Enable risk-based pricing  
-- Support automated underwriting systems  
-- Enhance portfolio risk monitoring  
-
-By leveraging data analytics and machine learning, banks can minimize financial losses while maintaining responsible lending practices.
-""")
-
-    st.divider()
-
-    # ---------------- DATA QUALITY ---------------- #
-    st.subheader("🧹 Data Preparation & Quality")
-
-    st.markdown("""
-- Removed unnecessary `Unnamed` columns  
-- Handled missing employment values  
-- Created engineered features for improved prediction  
-- Standardized categorical labels  
-- Ensured consistency between training and prediction pipelines  
-""")
-
-    st.divider()
-
-    # ---------------- PROJECT IMPACT ---------------- #
-    st.subheader("🚀 Project Impact")
-
-    st.markdown("""
-This dashboard provides:
-
-✔ Interactive exploratory data analysis  
-✔ Risk segmentation insights  
-✔ Model-based probability prediction  
-✔ Executive-level KPI monitoring  
-
-The system bridges **data analysis + machine learning + business intelligence** into a unified fintech solution.
-""")
+    st.subheader("Dataset Preview")
+    st.dataframe(df.head())
 
 
-# =====================================================
-# UNIVARIATE
-# =====================================================
-
+# ================= UNIVARIATE =================
 elif page == "Univariate Analysis":
 
     st.header("📊 Univariate Analysis")
@@ -289,12 +165,12 @@ elif page == "Univariate Analysis":
 
     feature_type = st.selectbox(
         "Select Feature Type",
-        ["Numeric","Categorical"]
+        ["Numeric", "Categorical"]
     )
 
-    if feature_type=="Numeric":
+    if feature_type == "Numeric":
 
-        col = st.selectbox("Choose Feature",numeric_cols)
+        col = st.selectbox("Choose Feature", numeric_cols)
 
         fig = px.histogram(
             df,
@@ -303,25 +179,21 @@ elif page == "Univariate Analysis":
             template="plotly_dark"
         )
 
-        # st.write("fig data (numeric):", fig.data)
-        st.plotly_chart(fig,use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
     else:
 
-        col = st.selectbox("Choose Feature",categorical_cols)
+        col = st.selectbox("Choose Feature", categorical_cols)
 
         fig = px.bar(
             df[col].value_counts(),
             template="plotly_dark"
         )
 
-        # st.write("fig data (categorical):", fig.data)
-        st.plotly_chart(fig,use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
-# =====================================================
-# BIVARIATE
-# =====================================================
 
+# ================= BIVARIATE =================
 elif page == "Bivariate Analysis":
 
     st.header("📈 Bivariate Analysis")
@@ -329,18 +201,15 @@ elif page == "Bivariate Analysis":
     numeric_cols = df.select_dtypes(include='number').columns
     categorical_cols = df.select_dtypes(include='object').columns
 
-    st.write("numeric columns:", list(numeric_cols))
-    st.write("categorical columns:", list(categorical_cols))
-
     chart = st.selectbox(
         "Select Chart",
-        ["Scatter","Box"]
+        ["Scatter", "Box"]
     )
 
-    if chart=="Scatter":
+    if chart == "Scatter":
 
-        x = st.selectbox("X Axis",numeric_cols)
-        y = st.selectbox("Y Axis",numeric_cols,index=1)
+        x = st.selectbox("X Axis", numeric_cols)
+        y = st.selectbox("Y Axis", numeric_cols, index=1)
 
         fig = px.scatter(
             df,
@@ -350,13 +219,12 @@ elif page == "Bivariate Analysis":
             template="plotly_dark"
         )
 
-        st.write("fig data (scatter):", fig.data)
-        st.plotly_chart(fig,use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
-    elif chart=="Box":
+    else:
 
-        cat = st.selectbox("Categorical",categorical_cols)
-        num = st.selectbox("Numeric",numeric_cols)
+        cat = st.selectbox("Categorical", categorical_cols)
+        num = st.selectbox("Numeric", numeric_cols)
 
         fig = px.box(
             df,
@@ -366,28 +234,22 @@ elif page == "Bivariate Analysis":
             template="plotly_dark"
         )
 
-        st.write("fig data (box):", fig.data)
-        st.plotly_chart(fig,use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
 
-# =====================================================
-# 🔥 MODEL PREDICTION PAGE
-# =====================================================
-
+# ================= MODEL PREDICTION =================
 elif page == "Model Prediction":
 
     st.title("Credit Default Prediction")
-    st.write("Enter borrower details to estimate **default probability**.")
-    
+
     col1, col2 = st.columns(2)
 
     with col1:
         income = st.number_input("Annual Income", 1000, 1000000, 50000)
         age = st.slider("Age", 18, 75, 30)
-        emp_length = st.slider("Employment Length (Years)", 0, 40, 5)
+        emp_length = st.slider("Employment Length", 0, 40, 5)
         credit_hist = st.slider("Credit History Length", 1, 40, 5)
         interest_rate = st.slider("Interest Rate (%)", 5.0, 35.0, 10.0)
-        
 
     with col2:
         loan_amnt = st.number_input("Loan Amount", 500, 500000, 20000)
@@ -399,8 +261,9 @@ elif page == "Model Prediction":
 
         loan_intent = st.selectbox(
             "Loan Intent",
-            ["PERSONAL","EDUCATION","MEDICAL","VENTURE",
-             "HOMEIMPROVEMENT","DEBTCONSOLIDATION"]
+            ["PERSONAL","EDUCATION","MEDICAL",
+             "VENTURE","HOMEIMPROVEMENT",
+             "DEBTCONSOLIDATION"]
         )
 
         loan_grade = st.selectbox(
@@ -413,25 +276,17 @@ elif page == "Model Prediction":
             ["Y","N"]
         )
 
-    # ---------------- FEATURE ENGINEERING ---------------- #
-
     loan_percent_income = loan_amnt / income
     emp_length_missing = 1 if emp_length == 0 else 0
     income_stability = income / (emp_length + 1)
+
     dti_band = pd.cut(
         [loan_percent_income],
-        bins=[0, 0.2, 0.4, 0.6, 1],
+        bins=[0,0.2,0.4,0.6,1],
         labels=["Low","Medium","High","Very High"]
     )[0]
 
-    # ---------------- PREDICTION ---------------- #
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns([1, 2, 1])
-
-    with col2:
-        predict = st.button("Predict Risk", use_container_width=True)
+    predict = st.button("Predict Risk", use_container_width=True)
 
     if predict:
 
@@ -458,13 +313,11 @@ elif page == "Model Prediction":
         st.divider()
 
         if prediction == 1:
-            st.error(f"⚠ High Risk of Default")
+            st.error("⚠ High Risk of Default")
         else:
-            st.success(f"✅ Low Risk Borrower")
+            st.success("✅ Low Risk Borrower")
 
-        st.metric("Default Probability", f"{probability*100:.2f}%")
-        
-        st.info("""
-        This probability represents the likelihood that the borrower may default.
-        Financial institutions can use this score for smarter lending decisions.
-        """)
+        st.metric(
+            "Default Probability",
+            f"{probability*100:.2f}%"
+        )
