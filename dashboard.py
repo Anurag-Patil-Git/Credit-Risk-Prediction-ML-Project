@@ -58,7 +58,7 @@ st.markdown("""
 # ================= LOAD DATA =================
 @st.cache_data(show_spinner=False)
 def load_data():
-    csv_url = "https://raw.githubusercontent.com/Anurag-Patil-Git/Credit-Risk-Management-ML-Project/main/credit_risk_dataset.csv"
+    csv_url = "https://raw.githubusercontent.com/Anurag-Patil-Git/Credit-Risk-Prediction-ML-Project/main/credit_risk_dataset.csv"
     df = pd.read_csv(csv_url)
     df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
     return df
@@ -321,3 +321,4 @@ elif page == "Model Prediction":
             "Default Probability",
             f"{probability*100:.2f}%"
         )
+
