@@ -3,7 +3,7 @@ pandas
 numpy
 plotly
 scikit-learn
+xgboost
 joblib
 watchdog
-matplotlib
-seaborn
+
