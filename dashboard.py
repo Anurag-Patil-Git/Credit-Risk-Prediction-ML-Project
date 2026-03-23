@@ -10,7 +10,8 @@ os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import joblib
+import requests
+import json
 
 
 # ================= PAGE CONFIG =================
@@ -26,8 +27,38 @@ st.markdown("""
 
 [data-testid="stAppViewContainer"]{
     background: linear-gradient(180deg,#0f172a,#020617);
+    color: white;
 }
 
+/* ✅ FIX SIDEBAR VISIBILITY */
+[data-testid="stSidebar"]{
+    background: linear-gradient(180deg,#1e293b,#0f172a) !important;
+}
+
+[data-testid="stSidebar"] * {
+    color: #f1f5f9 !important;
+}
+
+/* ================= TEXT ================= */
+[data-testid="stAppViewContainer"] h1,
+[data-testid="stAppViewContainer"] h2,
+[data-testid="stAppViewContainer"] h3,
+[data-testid="stAppViewContainer"] h4,
+[data-testid="stAppViewContainer"] h5,
+[data-testid="stAppViewContainer"] h6,
+[data-testid="stAppViewContainer"] p,
+[data-testid="stAppViewContainer"] span,
+[data-testid="stAppViewContainer"] div,
+[data-testid="stAppViewContainer"] label {
+    color: white !important;
+}
+
+[data-testid="stAppViewContainer"] .stMarkdown,
+[data-testid="stAppViewContainer"] .stText {
+    color: white !important;
+}
+
+/* ================= KPI ================= */
 .kpi-card{
     background: linear-gradient(135deg,#2563eb,#1e40af);
     padding:20px;
@@ -67,22 +98,25 @@ def load_data():
 df = load_data()
 
 
-# ================= LOAD MODEL =================
+# ================= API CONFIGURATION =================
+API_URL = "http://localhost:8000"
+
 @st.cache_resource
-def load_model():
+def get_api_health():
+    """Check if FastAPI backend is running"""
+    try:
+        response = requests.get(f"{API_URL}/health", timeout=2)
+        return response.status_code == 200
+    except:
+        return False
 
-    model_path = os.path.join(
-        os.path.dirname(__file__),
-        "credit_risk_model1.pkl"
+api_healthy = get_api_health()
+
+if not api_healthy:
+    st.warning(
+        "⚠️ FastAPI backend is not running. Please start the server with:\n"
+        "`python main.py`"
     )
-
-    with open(model_path, "rb") as f:
-        model = joblib.load(f)
-
-    return model
-
-
-model = load_model()
 
 
 # ================= SIDEBAR =================
@@ -398,37 +432,58 @@ elif page == "Model Prediction":
     predict = st.button("Predict Risk", use_container_width=True)
 
     if predict:
-
-        input_data = pd.DataFrame({
-            "person_age":[age],
-            "person_income":[income],
-            "person_home_ownership":[home_ownership],
-            "person_emp_length":[emp_length],
-            "loan_amnt":[loan_amnt],
-            "loan_int_rate":[interest_rate],
-            "loan_intent":[loan_intent],
-            "loan_grade":[loan_grade],
-            "cb_person_cred_hist_length":[credit_hist],
-            "cb_person_default_on_file":[past_default],
-            "loan_percent_income":[loan_percent_income],
-            "emp_length_missing":[emp_length_missing],
-            "income_stability":[income_stability],
-            "dti_band":[dti_band]
-        })
-
-        prediction = model.predict(input_data)[0]
-        probability = model.predict_proba(input_data)[0][1]
-
-        st.divider()
-
-        if prediction == 1:
-            st.error("⚠ High Risk of Default")
+        if not api_healthy:
+            st.error("❌ API is not available. Please start the FastAPI server first.")
         else:
-            st.success("✅ Low Risk Borrower")
+            try:
+                # Create payload for API
+                payload = {
+                    "person_age": age,
+                    "person_income": income,
+                    "person_home_ownership": home_ownership,
+                    "person_emp_length": emp_length,
+                    "loan_amnt": loan_amnt,
+                    "loan_int_rate": interest_rate,
+                    "loan_intent": loan_intent,
+                    "loan_grade": loan_grade,
+                    "cb_person_cred_hist_length": credit_hist,
+                    "cb_person_default_on_file": past_default,
+                    "loan_percent_income": loan_percent_income,
+                    "emp_length_missing": emp_length_missing,
+                    "income_stability": income_stability,
+                    "dti_band": str(dti_band)
+                }
 
-        st.metric(
-            "Default Probability",
-            f"{probability*100:.2f}%"
-        )
+                # Call FastAPI endpoint
+                response = requests.post(
+                    f"{API_URL}/predict",
+                    json=payload,
+                    timeout=5
+                )
+
+                if response.status_code == 200:
+                    result = response.json()
+                    
+                    st.divider()
+
+                    # Display prediction result
+                    if result["prediction"] == 1:
+                        st.error(f"⚠ {result['risk_level']}")
+                    else:
+                        st.success(f"✅ {result['risk_level']}")
+
+                    st.metric(
+                        "Default Probability",
+                        f"{result['probability']*100:.2f}%"
+                    )
+                else:
+                    st.error(f"❌ Prediction failed: {response.text}")
+            
+            except requests.exceptions.Timeout:
+                st.error("❌ API request timeout. Please check if the server is running.")
+            except requests.exceptions.ConnectionError:
+                st.error("❌ Cannot connect to API. Ensure the FastAPI server is running on http://localhost:8000")
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
 
 

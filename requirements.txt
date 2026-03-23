@@ -6,4 +6,8 @@ scikit-learn
 xgboost
 joblib
 watchdog
+fastapi
+uvicorn
+requests
+python-multipart
 
